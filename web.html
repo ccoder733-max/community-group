@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community Party</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+}
+
+.dark-mode {
+  --bg: #121212;
+  --text: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* Cards */
+.card {
+  background: rgba(0,0,0,0.1);
+  padding: 20px;
+  margin: 20px;
+  border-radius: 15px;
+}
+
+/* Buttons */
+button {
+  background: #25D366;
+  border: none;
+  padding: 10px 15px;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Slider */
+.slider { overflow: hidden; }
+.slides { display: flex; }
+.slides img { width: 100%; }
+
+/* WhatsApp */
+.whatsapp-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #25D366;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 60px;
+  font-size: 28px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="partyName">🎉 Community Party</h1>
+  <p id="partyDate">April 25, 2026</p>
+  <button onclick="toggleTheme()">🌙 Toggle Mode</button>
+</header>
+
+<div class="card">
+  <h2>⏳ Countdown</h2>
+  <div id="countdown"></div>
+</div>
+
+<div class="card">
+  <h2>📍 Details</h2>
+  Venue: <input id="venue" value="Community Hall"><br><br>
+  Time: <input id="time" value="6:00 PM">
+</div>
+
+<div class="card">
+  <h2>📝 RSVP</h2>
+  <input id="name" placeholder="Your Name"><br><br>
+  <input id="phone" placeholder="Phone"><br><br>
+  <button onclick="submitRSVP()">Submit</button>
+</div>
+
+<div class="card">
+  <h2>📲 Invite</h2>
+  <button onclick="sendInvite()">WhatsApp Invite</button>
+</div>
+
+<div class="card">
+  <h2>📸 Gallery</h2>
+  <div class="slider">
+    <div class="slides">
+      <img src="https://source.unsplash.com/800x400/?party">
+      <img src="https://source.unsplash.com/800x400/?festival">
+      <img src="https://source.unsplash.com/800x400/?community">
+    </div>
+  </div>
+</div>
+
+<a onclick="sendInvite()" class="whatsapp-float">💬</a>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+// 🌙 Theme Toggle
+function toggleTheme() {
+  document.body.classList.toggle("dark-mode");
+  localStorage.setItem("theme",
+    document.body.classList.contains("dark-mode") ? "dark" : "light"
+  );
+}
+
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark-mode");
+}
+
+// ⏳ Countdown
+const eventDate = new Date("April 25, 2026 18:00:00").getTime();
+
+setInterval(() => {
+  const now = new Date().getTime();
+  const gap = eventDate - now;
+
+  if (gap <= 0) {
+    document.getElementById("countdown").innerHTML = "🎉 Event Started!";
+    return;
+  }
+
+  const d = Math.floor(gap / (1000*60*60*24));
+  const h = Math.floor((gap % (1000*60*60*24))/(1000*60*60));
+  const m = Math.floor((gap % (1000*60*60))/(1000*60));
+  const s = Math.floor((gap % (1000*60))/1000);
+
+  document.getElementById("countdown").innerHTML =
+    `${d}d ${h}h ${m}m ${s}s`;
+}, 1000);
+
+// 📲 WhatsApp
+function getMessage() {
+  return `🎉 You're invited!\nEvent: Community Party\n📅 ${partyDate.innerText}\n📍 ${venue.value}\n⏰ ${time.value}`;
+}
+
+function sendInvite() {
+  window.open(`https://wa.me/?text=${encodeURIComponent(getMessage())}`);
+}
+
+// 🔥 Firebase Config (REPLACE THIS)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 📝 RSVP Save
+function submitRSVP() {
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+
+  db.collection("rsvps").add({
+    name, phone, time: new Date()
+  })
+  .then(() => alert("✅ RSVP Submitted"))
+  .catch(err => alert(err));
+}
+
+// 🎞 Slider Auto
+let index = 0;
+const slides = document.querySelector('.slides');
+const total = slides.children.length;
+
+setInterval(() => {
+  index = (index + 1) % total;
+  slides.style.transform = `translateX(-${index * 100}%)`;
+}, 3000);
+
+</script>
+
+</body>
+</html>
